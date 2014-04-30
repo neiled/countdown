@@ -2,13 +2,44 @@ class CountdownController < UIViewController
   def viewDidLoad
     self.view.backgroundColor = UIColor.whiteColor
     create_labels
+    create_buttons
     load_target_date
     update_labels
     
   end
-  
+
+  def create_buttons
+    @load_photo_button = UIButton.rounded_rect
+    @load_photo_button.setTitle("Pick Photo", forState:UIControlStateNormal)
+    @load_photo_button.sizeToFit
+    @load_photo_button.frame = CGRect.new([125,500], @load_photo_button.frame.size)
+    self.view.addSubview @load_photo_button
+
+    @load_photo_button.addTarget(self, action:'load_photo', forControlEvents: UIControlEventTouchUpInside)
+  end
+
+  def load_photo
+    picker = UIImagePickerController.alloc.init
+    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary
+
+    picker.mediaTypes = UIImagePickerController.availableMediaTypesForSourceType(UIImagePickerControllerSourceTypePhotoLibrary)
+
+    picker.allowsEditing = false
+    picker.delegate = self
+
+    self.presentModalViewController(picker, animated: true)
+  end
+
+  def imagePickerController(picker, didFinishPickingMediaWithInfo:info)
+    image = info.objectForKey(UIImagePickerControllerOriginalImage)
+
+    @image_view = UIImageView.alloc.initWithFrame([0,0],[self.view.frame.size.width,self.view.frame.size.height])
+    @image_view.setBackgroundColor = image
+    self.view.addSubview @image_view
+  end
+
   def viewWillAppear(animated)
-    @timer = NSTimer.scheduledTimerWithTimeInterval(0.1, target: self, selector: 'timer_tick', userInfo: nil, repeats: true)
+    @timer = NSTimer.scheduledTimerWithTimeInterval(0.01, target: self, selector: 'timer_tick', userInfo: nil, repeats: true)
   end
 
   def create_labels
@@ -38,20 +69,15 @@ class CountdownController < UIViewController
 
   def update_labels
     right_now = NSDate.new
-    days_total = (@target_datetime.timeIntervalSinceDate(right_now)/(60*60*24))
-    days = days_total.to_i
-    hours_total = (days_total - days) * 24
-    hours = hours_total.to_i
-    minutes_total = (hours_total - hours) * 60
-    minutes = minutes_total.to_i
-    seconds_total = (minutes_total - minutes) * 60
-    seconds = seconds_total.to_i
-    @days_label.text = NSString.stringWithFormat("%@", days)
-    @hours_label.text = NSString.stringWithFormat("%@", hours)
-    @minutes_label.text = NSString.stringWithFormat("%@", minutes)
-    @seconds_label.text = NSString.stringWithFormat("%@", seconds)
+
+    flags = NSDayCalendarUnit | NSHourCalendarUnit | NSMinuteCalendarUnit | NSSecondCalendarUnit
+    components = NSCalendar.currentCalendar.components(flags, fromDate: right_now, toDate: @target_datetime, options: 0)
 
 
+    @days_label.text = NSString.stringWithFormat("%@", components.day)
+    @hours_label.text = NSString.stringWithFormat("%@", components.hour)
+    @minutes_label.text = NSString.stringWithFormat("%@", components.minute)
+    @seconds_label.text = NSString.stringWithFormat("%@", components.second)
   end
 
   def timer_tick
