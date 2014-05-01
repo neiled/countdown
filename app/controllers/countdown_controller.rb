@@ -31,10 +31,11 @@ class CountdownController < UIViewController
   end
 
   def imagePickerController(picker, didFinishPickingMediaWithInfo:info)
+    self.dismissViewControllerAnimated(true, completion: nil)
     image = info.objectForKey(UIImagePickerControllerOriginalImage)
 
-    @image_view = UIImageView.alloc.initWithFrame([0,0],[self.view.frame.size.width,self.view.frame.size.height])
-    @image_view.setBackgroundColor = image
+    @image_view ||= UIImageView.alloc.initWithFrame([[0,0],[self.view.frame.size.width,self.view.frame.size.height]])
+    @image_view.setImage(image)
     self.view.addSubview @image_view
   end
 
@@ -74,10 +75,10 @@ class CountdownController < UIViewController
     components = NSCalendar.currentCalendar.components(flags, fromDate: right_now, toDate: @target_datetime, options: 0)
 
 
-    @days_label.text = NSString.stringWithFormat("%@", components.day)
-    @hours_label.text = NSString.stringWithFormat("%@", components.hour)
-    @minutes_label.text = NSString.stringWithFormat("%@", components.minute)
-    @seconds_label.text = NSString.stringWithFormat("%@", components.second)
+    @days_label.text = NSString.stringWithFormat("Days: %@", components.day)
+    @hours_label.text = NSString.stringWithFormat("Hours: %@", components.hour)
+    @minutes_label.text = NSString.stringWithFormat("Minutes: %@", components.minute)
+    @seconds_label.text = NSString.stringWithFormat("Seconds: %@", components.second)
   end
 
   def timer_tick
